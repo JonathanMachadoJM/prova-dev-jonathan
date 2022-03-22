@@ -2,7 +2,10 @@ import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-export const ColorModeContext = React.createContext({ toggleColorMode: () => {} });
+export const ColorModeContext = React.createContext({
+  toggleColorMode: () => {
+  },
+});
 
 const ToggleColorMode = (props) => {
   const prefersDarkMode = localStorage.getItem('colorMode') || 'dark';
@@ -38,6 +41,6 @@ const ToggleColorMode = (props) => {
       </ThemeProvider>
     </ColorModeContext.Provider>
   );
-}
+};
 
 export default ToggleColorMode;

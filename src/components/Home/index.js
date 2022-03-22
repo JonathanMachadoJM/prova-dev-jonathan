@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { styled } from '@mui/system';
-import {createTheme} from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 
 import {
   Grid,
@@ -14,6 +14,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import Header from '../Header';
 
 const theme = createTheme();
 
@@ -84,19 +85,19 @@ const rows = [
   createData('Gingerbread', 15, 16.0, 49, 3.9),
 ];
 
-const StyledPaper = styled(Paper, {}) ({
+const StyledPaper = styled(Paper, {})({
   borderRadius: 15,
-  maxWidth: '100%'
+  maxWidth: '100%',
 });
 
-const StyledTable = styled(Table, {}) ({
+const StyledTable = styled(Table, {})({
   minWidth: 650,
 });
 
-const StyledTableHeaderCell = styled(TableCell, {}) ({
+const StyledTableHeaderCell = styled(TableCell, {})({
   fontWeight: 'bold',
-  backgroundColor: theme.palette.primary.dark,
-  color: theme.palette.getContrastText(theme.palette.primary.dark)
+  // backgroundColor: theme.palette.primary.dark,
+  color: theme.palette.getContrastText(theme.palette.mode === 'dark' ? theme.palette.secondary.light : theme.palette.secondary.dark),
 });
 
 const Home = () => {
@@ -113,89 +114,94 @@ const Home = () => {
   };
 
   return (
-    <StyledPaper>
-      <StyledTable aria-label="a dense table">
-        <TableHead >
-          <TableRow>
-            <StyledTableHeaderCell align="left">Calories</StyledTableHeaderCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((row) => {
-              return (
-                <TableRow
-                  hover
-                  key={row.name}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell
+    <>
+      <Header />
+      <StyledPaper>
+        <StyledTable aria-label="tabela de solicitações">
+          <TableHead>
+            <TableRow>
+              <StyledTableHeaderCell align="left">Solicitações</StyledTableHeaderCell>
+              <StyledTableHeaderCell align="center">Entrada</StyledTableHeaderCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row, i) => {
+                return (
+                  <TableRow
+                    hover
+                    key={row.name + i}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
-                    <Grid container
-                      flexDirection = 'row'
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Grid>
-                        <Grid
-                          flexDirection = 'row'
-                          sx={{
-                            display: 'flex'
-                          }}
-                        >
+                    <TableCell>
+                      <Grid container
+                            flexDirection="row"
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                            }}
+                      >
+                        <Grid>
+                          <Grid
+                            flexDirection="row"
+                            sx={{
+                              display: 'flex',
+                            }}
+                          >
+                            <Typography
+                              color="textSecondary"
+                              variant="caption"
+                            >
+                              Finalizado
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="caption"
+                            >
+                              &nbsp;|&nbsp;
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="caption"
+                            >
+                              {'#' + row.email}
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="caption"
+                            >
+                              &nbsp;|&nbsp;
+                            </Typography>
+                            <Typography
+                              color="textSecondary"
+                              variant="caption"
+                            >
+                              fulano
+                            </Typography>
+                          </Grid>
                           <Typography
                             color="textSecondary"
-                            variant="caption"
-                          >
-                            {'Finalizado'}
+                            variant="body1"
+                            sx={{
+                              fontWeight: 'bold',
+                            }}>
+                            {'YOPEN - Mudaças na API - intagração'}
                           </Typography>
                           <Typography
                             color="textSecondary"
-                            variant="caption"
-                          >
-                            {'|'}
-                          </Typography>
-                          <Typography
-                            color="textSecondary"
-                            variant="caption"
-                          >
-                            {'#' + row.email}
-                          </Typography>
-                          <Typography
-                            color="textSecondary"
-                            variant="caption"
-                          >
-                            {'|'}
-                          </Typography>
-                          <Typography
-                            color="textSecondary"
-                            variant="caption"
-                          >
-                            {'fulano'}
+                            variant="caption">
+                            {'Produto ou serviços YOPEN'}
                           </Typography>
                         </Grid>
-                        <Typography
-                          color="textSecondary"
-                          variant="body1"
-                          sx={{
-                            fontWeight: 'bold',
-                          }}>
-                            {"YOPEN - Mudaças na API - intagração"}
-                        </Typography>
-                        <Typography
-                          color="textSecondary"
-                          variant="caption">
-                            {'Produto ou serviços YOPEN'}
-                        </Typography>
                       </Grid>
+                    </TableCell>
+                    <TableCell sx={{ width: '120px', borderLeft: `1px solid ${theme.palette.background.default}` }}>
                       <Grid
-                        flexDirection = 'column'
-                        alignItems='center'
+                        flexDirection="column"
+                        alignItems="center"
                         sx={{
-                          display: 'flex'
+                          display: 'flex',
                         }}
                       >
                         <Typography
@@ -220,26 +226,26 @@ const Home = () => {
                           {'16:18'}
                         </Typography>
                       </Grid>
-                    </Grid>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-        <TableFooter>
-        <TablePagination
-          rowsPerPageOptions={[]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-        </TableFooter>
-      </StyledTable>
-    </StyledPaper>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+          </TableBody>
+          <TableFooter>
+            <TablePagination
+              rowsPerPageOptions={[]}
+              component="div"
+              count={rows.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </TableFooter>
+        </StyledTable>
+      </StyledPaper>
+    </>
   );
-}
+};
 
 export default Home;

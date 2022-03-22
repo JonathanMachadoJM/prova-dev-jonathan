@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -8,15 +9,13 @@ import {
   TextField,
 } from '@mui/material';
 import {
-  createUserWithEmailAndPassword,
-  updateProfile,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth } from '../../firebase-config';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Logo from '../Logo';
 import Alert from '../Alert';
 
-const SignUp = () => {
+const SignInput = () => {
   const navigate = useNavigate();
   const [alertMessage, setAlertMessage] = useState('');
   const [isError, setIsError] = useState(true);
@@ -35,33 +34,23 @@ const SignUp = () => {
     event.preventDefault();
     handleCloseAlert();
     const data = new FormData(event.currentTarget);
-
-    if (!data.get('email')) return setError('Por favor, informe o seu e-mail.');
-    if (!data.get('password')) return setError('Por favor, informe sua senha.');
-    if (!data.get('name')) return setError('Por favor, informe seu nome.');
-
-    createUserWithEmailAndPassword(
+    signInWithEmailAndPassword(
       auth,
       data.get('email'),
       data.get('password'),
-    ).then(user => {
-      updateProfile(user.user, {
-        displayName: data.get('name'),
-      });
-      return user;
-    }).then(() => {
-      setSuccess('Seu usuário foi cadastrado. Redirecionando...');
+    ).then(() => {
+      setSuccess('Usuário autenticado, redirecionando...');
 
       setTimeout(() => {
-        navigate('/login');
+        navigate('/home');
       }, 1000);
-    })
-      .catch((err) => {
-        if (err.message.indexOf('email-already-in-use') > 0) return setError('E-mail já cadastrado.');
+    }).catch(err => {
+      if (err.message.indexOf('user-not-found') > 0) return setError('Usuário não encontrado.');
+      if (err.message.indexOf('wrong-password)') > 0) return setError('Senha incorreta.');
 
-        setError('Ocorreu um erro ao salvar seu cadastro.');
-        console.error(err);
-      });
+      setError('Ocorreu um erro ao logar.');
+      console.error(err);
+    });
   };
 
   return (
@@ -90,26 +79,11 @@ const SignUp = () => {
             margin="normal"
             required
             fullWidth
-            id="name"
-            label="Nome"
-            name="name"
-            autoComplete="given-name"
-            autoFocus
-            sx={{
-              height: 56,
-              width: 300,
-              mt: 3,
-              mb: 2,
-            }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
             id="email"
-            label="E-mail"
+            label="Usuário"
             name="email"
             autoComplete="email"
+            autoFocus
             sx={{
               height: 56,
               width: 300,
@@ -125,7 +99,7 @@ const SignUp = () => {
             label="Senha"
             type="password"
             id="password"
-            autoComplete="new-password"
+            autoComplete="current-password"
             sx={{
               height: 56,
               width: 300,
@@ -144,21 +118,17 @@ const SignUp = () => {
               variant="contained"
               sx={{
                 height: 36.5,
-                width: 145,
+                width: 100,
                 mt: 3,
                 mb: 2,
               }}
             >
-              Inscrever-se
+              Entrar
             </Button>
           </Grid>
           <Grid container alignItems="center" direction="column">
             <Grid item>
-              <MaterialLink
-                component={RouterLink}
-                to="/login"
-                underline="hover"
-              >Já possui uma conta? Entrar!</MaterialLink>
+              <MaterialLink component={RouterLink} to="/cadastro">Não possui uma conta? Criar!</MaterialLink>
             </Grid>
           </Grid>
         </Box>
@@ -167,4 +137,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default SignInput;
