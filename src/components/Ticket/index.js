@@ -24,6 +24,8 @@ import {
 
 import { db, storage } from '../../firebase-config';
 
+import Header from '../Header';
+
 // function useQuery() {
 //   const { search } = useLocation();
 
@@ -95,7 +97,29 @@ const Ticket = () => {
       usuariosImpactados: data.get('usuarios-impactados-select'),
       titulo: data.get('titulo'),
       anexo: fileName,
+    }).then((e) => {
+      const timestamp = Date.now();
+      const foo = {
+        id: e.id,
+        ambiente: data.get('ambiente-select'),
+        categoria: data.get('categoria'),
+        descricao: data.get('descricao'),
+        operacao: data.get('operacao-select'),
+        prioridade: data.get('prioridade'),
+        produto: data.get('produto'),
+        usuariosImpactados: data.get('usuarios-impactados-select'),
+        titulo: data.get('titulo'),
+        datetime: timestamp,
+        username: "Jonathan",
+        email: "jonathan@gmail.com",
+      }
+      addDoc(collection(db, "log-ticket"), {
+        log: JSON.stringify(foo),
+      }).then((log) => {
+        console.log(log);
+      })
     });
+
     console.log(data.get('anexo'));
     const anexo = ref(storage, fileName);
 
@@ -106,220 +130,209 @@ const Ticket = () => {
     });
   };
 
-  const download = async () => {
-    getDownloadURL(ref(storage, 'files/ProvaDEVversao3.pdf'))
-      .then((url) => {
-        console.log(url);
-      });
-  }
+  // const download = async () => {
+  //   getDownloadURL(ref(storage, 'files/ProvaDEVversao3.pdf'))
+  //     .then((url) => {
+  //       console.log(url);
+  //     });
+  // }
 
   useEffect(() => {
 
   });
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
+    <>
+      <Header />
+      <Container component="main" maxWidth="xs">
         <Box
-          component="form"
-          onSubmit={handleSubmit}
-          flexDirection='column'
-          noValidate
           sx={{
-            mt: 1,
-            display: 'flex'
+            marginTop: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}
         >
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="titulo"
-            label="Título"
-            name="titulo"
-            autoFocus
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            flexDirection='column'
+            noValidate
             sx={{
-              width: 500,
               mt: 1,
-              mb: 1
-            }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="descricao"
-            label="Descricao"
-            name="descricao"
-            multiline={true}
-            minRows={2}
-            maxRows={3}
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="produto"
-            label="Produto"
-            name="produto"
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="categoria"
-            label="Categoria"
-            name="categoria"
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          />
-          <FormControl>
-            <FormLabel id="prioridade">Prioridade</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="prioridade"
-              name="prioridade"
-            >
-              <FormControlLabel value={0} control={<Radio />} label="Alta" />
-              <FormControlLabel value={1} control={<Radio />} label="Médio" />
-              <FormControlLabel value={2} control={<Radio />} label="Baixa" />
-            </RadioGroup>
-          </FormControl>
-
-          <FormControl
-            fullWidth
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
+              display: 'flex'
             }}
           >
-            <InputLabel id="usuarios-impactados-label">Usuários Impactados</InputLabel>
-            <Select
-              labelId="usuarios-impactados-label"
-              id="usuarios-impactados-select"
-              value={usuariosImpactados}
-              label="Usuários Impactados"
-              name="usuarios-impactados-select"
-              onChange={handleChangeUsuariosImpactados}
-            >
-              <MenuItem value={0}>Apenas 1</MenuItem>
-              <MenuItem value={1}>1 a 10 Usuários</MenuItem>
-              <MenuItem value={2}>11 a 30 Usuários</MenuItem>
-              <MenuItem value={3}>31 a 50 Usuários</MenuItem>
-              <MenuItem value={4}>Mais de 50 Usuários</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl
-            fullWidth
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          >
-            <InputLabel id="operacao-label">Sua operação está parada?</InputLabel>
-            <Select
-              labelId="operacao-label"
-              id="operacao-select"
-              value={operacao}
-              label="Sua operação está parada?"
-              name="operacao-select"
-              onChange={handleChangeOperacao}
-            >
-              <MenuItem value={0}>Operação parada</MenuItem>
-              <MenuItem value={1}>Operação consegue trabalhar</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl
-            fullWidth
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          >
-            <InputLabel id="ambiente-label">Informações de Ambiente</InputLabel>
-            <Select
-              labelId="ambiente-label"
-              id="ambiente-select"
-              value={ambiente}
-              label="Informações de Ambiente"
-              name="ambiente-select"
-              onChange={handleChangeAmbiente}
-            >
-              <MenuItem value={0}>Dados/Ambiente de Testes - Somente testes</MenuItem>
-              <MenuItem value={1}>Ambiente de produção - Cliente Ativo/Licença</MenuItem>
-            </Select>
-          </FormControl>
-          <Input
-            required
-            id="anexo"
-            label="Anexo"
-            name="anexo"
-            type="file"
-            sx={{
-              width: 500,
-              mt: 1,
-              mb: 1
-            }}
-          />
-          <Grid container
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Button
-              type="submit"
+            <TextField
+              margin="normal"
+              required
               fullWidth
-              variant="contained"
+              id="titulo"
+              label="Título"
+              name="titulo"
+              autoFocus
               sx={{
-                height: 36.5,
-                width: 145,
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="descricao"
+              label="Descricao"
+              name="descricao"
+              multiline={true}
+              minRows={2}
+              maxRows={3}
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="produto"
+              label="Produto"
+              name="produto"
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="categoria"
+              label="Categoria"
+              name="categoria"
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            />
+            <FormControl>
+              <FormLabel id="prioridade">Prioridade</FormLabel>
+              <RadioGroup
+                row
+                aria-labelledby="prioridade"
+                name="prioridade"
+              >
+                <FormControlLabel value={0} control={<Radio />} label="Alta" />
+                <FormControlLabel value={1} control={<Radio />} label="Médio" />
+                <FormControlLabel value={2} control={<Radio />} label="Baixa" />
+              </RadioGroup>
+            </FormControl>
+
+            <FormControl
+              fullWidth
+              sx={{
+                width: 500,
                 mt: 1,
                 mb: 1
               }}
             >
-              Salvar
-            </Button>
-          </Grid>
+              <InputLabel id="usuarios-impactados-label">Usuários Impactados</InputLabel>
+              <Select
+                labelId="usuarios-impactados-label"
+                id="usuarios-impactados-select"
+                value={usuariosImpactados}
+                label="Usuários Impactados"
+                name="usuarios-impactados-select"
+                onChange={handleChangeUsuariosImpactados}
+              >
+                <MenuItem value={0}>Apenas 1</MenuItem>
+                <MenuItem value={1}>1 a 10 Usuários</MenuItem>
+                <MenuItem value={2}>11 a 30 Usuários</MenuItem>
+                <MenuItem value={3}>31 a 50 Usuários</MenuItem>
+                <MenuItem value={4}>Mais de 50 Usuários</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl
+              fullWidth
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            >
+              <InputLabel id="operacao-label">Sua operação está parada?</InputLabel>
+              <Select
+                labelId="operacao-label"
+                id="operacao-select"
+                value={operacao}
+                label="Sua operação está parada?"
+                name="operacao-select"
+                onChange={handleChangeOperacao}
+              >
+                <MenuItem value={0}>Operação parada</MenuItem>
+                <MenuItem value={1}>Operação consegue trabalhar</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl
+              fullWidth
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            >
+              <InputLabel id="ambiente-label">Informações de Ambiente</InputLabel>
+              <Select
+                labelId="ambiente-label"
+                id="ambiente-select"
+                value={ambiente}
+                label="Informações de Ambiente"
+                name="ambiente-select"
+                onChange={handleChangeAmbiente}
+              >
+                <MenuItem value={0}>Dados/Ambiente de Testes - Somente testes</MenuItem>
+                <MenuItem value={1}>Ambiente de produção - Cliente Ativo/Licença</MenuItem>
+              </Select>
+            </FormControl>
+            <Input
+              required
+              id="anexo"
+              label="Anexo"
+              name="anexo"
+              type="file"
+              sx={{
+                width: 500,
+                mt: 1,
+                mb: 1
+              }}
+            />
+            <Grid container
+              direction="row"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{
+                  height: 36.5,
+                  width: 145,
+                  mt: 1,
+                  mb: 1
+                }}
+              >
+                Salvar
+              </Button>
+            </Grid>
+          </Box>
         </Box>
-      </Box>
-      <Button
-        type="submit"
-        fullWidth
-        variant="contained"
-        onClick={download}
-        sx={{
-          height: 36.5,
-          width: 145,
-          mt: 1,
-          mb: 1
-        }}
-      >
-        Inscrever-se
-      </Button>
-    </Container>
+      </Container>
+    </>
   );
 }
 

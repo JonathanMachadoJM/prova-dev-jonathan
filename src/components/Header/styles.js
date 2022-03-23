@@ -26,3 +26,13 @@ export const LogoButton = styled.div`
 export const LogoText = styled.h3`
   color: #141b20;
 `;
+
+export const Menu = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+export const Button = styled.button`
+
+`;

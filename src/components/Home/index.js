@@ -1,6 +1,8 @@
-import * as React from 'react';
+import React, {useEffect} from 'react';
 import { styled } from '@mui/system';
 import { createTheme } from '@mui/material/styles';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from '../../firebase-config';
 
 import {
   Grid,
@@ -14,76 +16,76 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import Header from '../Header';
 
+import Header from '../Header';
 const theme = createTheme();
 
-function createData(name, email, phone, carbs, protein) {
-  return { name, email, phone, carbs, protein };
-}
+// function createData(name, email, phone, carbs, protein) {
+//   return { name, email, phone, carbs, protein };
+// }
 
-const rows = [
-  createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  createData('Eclair', 3, 16.0, 24, 6.0),
-  createData('Cupcake', 4, 3.7, 67, 4.3),
-  createData('Gingerbread', 5, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  createData('Eclair', 8, 16.0, 24, 6.0),
-  createData('Cupcake', 9, 3.7, 67, 4.3),
-  createData('Gingerbread', 10, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  createData('Eclair', 13, 16.0, 24, 6.0),
-  createData('Cupcake', 14, 3.7, 67, 4.3),
-  createData('Gingerbread', 15, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  createData('Eclair', 3, 16.0, 24, 6.0),
-  createData('Cupcake', 4, 3.7, 67, 4.3),
-  createData('Gingerbread', 5, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  createData('Eclair', 8, 16.0, 24, 6.0),
-  createData('Cupcake', 9, 3.7, 67, 4.3),
-  createData('Gingerbread', 10, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  createData('Eclair', 13, 16.0, 24, 6.0),
-  createData('Cupcake', 14, 3.7, 67, 4.3),
-  createData('Gingerbread', 30, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 31, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  createData('Eclair', 3, 16.0, 24, 6.0),
-  createData('Cupcake', 4, 3.7, 67, 4.3),
-  createData('Gingerbread', 5, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  createData('Eclair', 8, 16.0, 24, 6.0),
-  createData('Cupcake', 9, 3.7, 67, 4.3),
-  createData('Gingerbread', 10, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  createData('Eclair', 13, 16.0, 24, 6.0),
-  createData('Cupcake', 14, 3.7, 67, 4.3),
-  createData('Gingerbread', 15, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  createData('Eclair', 3, 16.0, 24, 6.0),
-  createData('Cupcake', 4, 3.7, 67, 4.3),
-  createData('Gingerbread', 5, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  createData('Eclair', 8, 16.0, 24, 6.0),
-  createData('Cupcake', 9, 3.7, 67, 4.3),
-  createData('Gingerbread', 10, 16.0, 49, 3.9),
-  createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  createData('Eclair', 13, 16.0, 24, 6.0),
-  createData('Cupcake', 14, 3.7, 67, 4.3),
-  createData('Gingerbread', 15, 16.0, 49, 3.9),
-];
+// const rows = [
+  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
+  // createData('Eclair', 3, 16.0, 24, 6.0),
+  // createData('Cupcake', 4, 3.7, 67, 4.3),
+  // createData('Gingerbread', 5, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
+  // createData('Eclair', 8, 16.0, 24, 6.0),
+  // createData('Cupcake', 9, 3.7, 67, 4.3),
+  // createData('Gingerbread', 10, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
+  // createData('Eclair', 13, 16.0, 24, 6.0),
+  // createData('Cupcake', 14, 3.7, 67, 4.3),
+  // createData('Gingerbread', 15, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
+  // createData('Eclair', 3, 16.0, 24, 6.0),
+  // createData('Cupcake', 4, 3.7, 67, 4.3),
+  // createData('Gingerbread', 5, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
+  // createData('Eclair', 8, 16.0, 24, 6.0),
+  // createData('Cupcake', 9, 3.7, 67, 4.3),
+  // createData('Gingerbread', 10, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
+  // createData('Eclair', 13, 16.0, 24, 6.0),
+  // createData('Cupcake', 14, 3.7, 67, 4.3),
+  // createData('Gingerbread', 30, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 31, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
+  // createData('Eclair', 3, 16.0, 24, 6.0),
+  // createData('Cupcake', 4, 3.7, 67, 4.3),
+  // createData('Gingerbread', 5, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
+  // createData('Eclair', 8, 16.0, 24, 6.0),
+  // createData('Cupcake', 9, 3.7, 67, 4.3),
+  // createData('Gingerbread', 10, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
+  // createData('Eclair', 13, 16.0, 24, 6.0),
+  // createData('Cupcake', 14, 3.7, 67, 4.3),
+  // createData('Gingerbread', 15, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
+  // createData('Eclair', 3, 16.0, 24, 6.0),
+  // createData('Cupcake', 4, 3.7, 67, 4.3),
+  // createData('Gingerbread', 5, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
+  // createData('Eclair', 8, 16.0, 24, 6.0),
+  // createData('Cupcake', 9, 3.7, 67, 4.3),
+  // createData('Gingerbread', 10, 16.0, 49, 3.9),
+  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
+  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
+  // createData('Eclair', 13, 16.0, 24, 6.0),
+  // createData('Cupcake', 14, 3.7, 67, 4.3),
+  // createData('Gingerbread', 15, 16.0, 49, 3.9),
+// ];
 
 const StyledPaper = styled(Paper, {})({
   borderRadius: 15,
@@ -103,6 +105,7 @@ const StyledTableHeaderCell = styled(TableCell, {})({
 const Home = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(30);
+  const [rows, setRows] = React.useState([]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -113,9 +116,21 @@ const Home = () => {
     setPage(0);
   };
 
+  useEffect(() => {
+    onSnapshot(collection(db, "ticket"), (snapshot) => {
+      setRows(snapshot.docs.map(doc => doc.data()));
+      console.log(snapshot.docs.map(doc => {doc.id, doc.data()}));
+    });
+  });
+
   return (
     <>
       <Header />
+      {rows == null || rows.length == 0 ?
+      <>
+        Vazio
+      </>
+      :
       <StyledPaper>
         <StyledTable aria-label="tabela de solicitações">
           <TableHead>
@@ -131,7 +146,7 @@ const Home = () => {
                 return (
                   <TableRow
                     hover
-                    key={row.name + i}
+                    key={row.ambiente + i}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
                     <TableCell>
@@ -165,7 +180,7 @@ const Home = () => {
                               color="textSecondary"
                               variant="caption"
                             >
-                              {'#' + row.email}
+                              {'#' + row.ambiente}
                             </Typography>
                             <Typography
                               color="textSecondary"
@@ -186,12 +201,12 @@ const Home = () => {
                             sx={{
                               fontWeight: 'bold',
                             }}>
-                            {'YOPEN - Mudaças na API - intagração'}
+                            {row.titulo}
                           </Typography>
                           <Typography
                             color="textSecondary"
                             variant="caption">
-                            {'Produto ou serviços YOPEN'}
+                            {row.produto}
                           </Typography>
                         </Grid>
                       </Grid>
@@ -240,10 +255,11 @@ const Home = () => {
               page={page}
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
-            />
+              />
           </TableFooter>
         </StyledTable>
       </StyledPaper>
+      }
     </>
   );
 };
