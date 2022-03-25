@@ -1,6 +1,7 @@
+import React from 'react';
 import { Button, Grid, Typography } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/Add';
-import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 const EmptyList = () => {
   return (
@@ -17,7 +18,12 @@ const EmptyList = () => {
       </Grid>
       <br />
       <Grid item>
-        <Button variant="contained" startIcon={<AddCircleIcon />}>
+        <Button
+          variant="contained"
+          startIcon={<AddCircleIcon />}
+          component={RouterLink}
+          to="/ticket"
+        >
           <strong>Criar Ticket</strong>
         </Button>
       </Grid>
