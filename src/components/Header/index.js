@@ -9,7 +9,7 @@ import { Link as RouterLink, } from 'react-router-dom';
 import { Container, Logo, LogoButton, LogoText, Menu} from './styles';
 import { ColorModeContext } from '../ToggleColorMode';
 import MenuAvatar from '../MenuAvatar';
-
+import { auth } from '../../firebase-config';
 
 const Header = () => {
   const theme = useTheme();
@@ -17,6 +17,7 @@ const Header = () => {
   const isDark = theme.palette.mode === 'dark';
   const logoDarkUrl = 'https://inbox.taugor.app/static/media/logo_dark.6b571a1b46feca7b071fd717b83e77f1.svg';
   const logoLightUrl = 'https://inbox.taugor.app/static/media/logo_light.4943842c7f33a505e7de3f389cc76d89.svg';
+  const user = auth.currentUser;
 
   return (
     <Container>
@@ -46,7 +47,7 @@ const Header = () => {
         <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
           {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
         </IconButton>
-        <MenuAvatar/>
+        {user && <MenuAvatar />}
       </Menu>
     </Container>
   );

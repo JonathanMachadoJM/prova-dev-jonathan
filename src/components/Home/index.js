@@ -1,9 +1,4 @@
-import React, {useEffect} from 'react';
-import { styled } from '@mui/system';
-import { createTheme } from '@mui/material/styles';
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from '../../firebase-config';
-
+import React, { useEffect } from 'react';
 import {
   Grid,
   Paper,
@@ -14,78 +9,17 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography,
+  Typography
 } from '@mui/material';
-
+import { createTheme } from '@mui/material/styles';
+import { styled } from '@mui/system';
+import { collection, onSnapshot } from "firebase/firestore";
+import MenuList from '../../components/Menu';
+import { db } from '../../firebase-config';
 import Header from '../Header';
+
+
 const theme = createTheme();
-
-// function createData(name, email, phone, carbs, protein) {
-//   return { name, email, phone, carbs, protein };
-// }
-
-// const rows = [
-  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  // createData('Eclair', 3, 16.0, 24, 6.0),
-  // createData('Cupcake', 4, 3.7, 67, 4.3),
-  // createData('Gingerbread', 5, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  // createData('Eclair', 8, 16.0, 24, 6.0),
-  // createData('Cupcake', 9, 3.7, 67, 4.3),
-  // createData('Gingerbread', 10, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  // createData('Eclair', 13, 16.0, 24, 6.0),
-  // createData('Cupcake', 14, 3.7, 67, 4.3),
-  // createData('Gingerbread', 15, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  // createData('Eclair', 3, 16.0, 24, 6.0),
-  // createData('Cupcake', 4, 3.7, 67, 4.3),
-  // createData('Gingerbread', 5, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  // createData('Eclair', 8, 16.0, 24, 6.0),
-  // createData('Cupcake', 9, 3.7, 67, 4.3),
-  // createData('Gingerbread', 10, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  // createData('Eclair', 13, 16.0, 24, 6.0),
-  // createData('Cupcake', 14, 3.7, 67, 4.3),
-  // createData('Gingerbread', 30, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 31, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  // createData('Eclair', 3, 16.0, 24, 6.0),
-  // createData('Cupcake', 4, 3.7, 67, 4.3),
-  // createData('Gingerbread', 5, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  // createData('Eclair', 8, 16.0, 24, 6.0),
-  // createData('Cupcake', 9, 3.7, 67, 4.3),
-  // createData('Gingerbread', 10, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  // createData('Eclair', 13, 16.0, 24, 6.0),
-  // createData('Cupcake', 14, 3.7, 67, 4.3),
-  // createData('Gingerbread', 15, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 1, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 2, 9.0, 37, 4.3),
-  // createData('Eclair', 3, 16.0, 24, 6.0),
-  // createData('Cupcake', 4, 3.7, 67, 4.3),
-  // createData('Gingerbread', 5, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 6, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 7, 9.0, 37, 4.3),
-  // createData('Eclair', 8, 16.0, 24, 6.0),
-  // createData('Cupcake', 9, 3.7, 67, 4.3),
-  // createData('Gingerbread', 10, 16.0, 49, 3.9),
-  // createData('Frozen yoghurt', 11, 6.0, 24, 4.0),
-  // createData('Ice cream sandwich', 12, 9.0, 37, 4.3),
-  // createData('Eclair', 13, 16.0, 24, 6.0),
-  // createData('Cupcake', 14, 3.7, 67, 4.3),
-  // createData('Gingerbread', 15, 16.0, 49, 3.9),
-// ];
 
 const StyledPaper = styled(Paper, {})({
   borderRadius: 15,
@@ -102,6 +36,10 @@ const StyledTableHeaderCell = styled(TableCell, {})({
   color: theme.palette.getContrastText(theme.palette.mode === 'dark' ? theme.palette.secondary.light : theme.palette.secondary.dark),
 });
 
+const monthNames = ["Jan", "Fev", "Mar", "Apr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+];
+
 const Home = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(30);
@@ -116,12 +54,26 @@ const Home = () => {
     setPage(0);
   };
 
+  const montarStatus = (status) => {
+    switch (parseInt(status)) {
+      case 0:
+        return 'Aberto';
+      case 1:
+        return 'Em análise';
+      case 2:
+        return 'Finalizado';
+      default:
+        return "";
+    }
+  };
+
   useEffect(() => {
     onSnapshot(collection(db, "ticket"), (snapshot) => {
-      setRows(snapshot.docs.map(doc => doc.data()));
-      console.log(snapshot.docs.map(doc => {doc.id, doc.data()}));
+      setRows(snapshot.docs.map(doc => {
+        return {id: doc.id, ...doc.data(), url: doc.data().anexo}
+      }));
     });
-  });
+  }, []);
 
   return (
     <>
@@ -137,16 +89,19 @@ const Home = () => {
             <TableRow>
               <StyledTableHeaderCell align="left">Solicitações</StyledTableHeaderCell>
               <StyledTableHeaderCell align="center">Entrada</StyledTableHeaderCell>
+              <StyledTableHeaderCell align="center">Ações</StyledTableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, i) => {
+              .map((row) => {
+                const status = montarStatus(row.status);
+                const createDate = new Date(row.datetime.seconds*1000);
                 return (
                   <TableRow
                     hover
-                    key={row.ambiente + i}
+                    key={row.id}
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
                     <TableCell>
@@ -168,19 +123,7 @@ const Home = () => {
                               color="textSecondary"
                               variant="caption"
                             >
-                              Finalizado
-                            </Typography>
-                            <Typography
-                              color="textSecondary"
-                              variant="caption"
-                            >
-                              &nbsp;|&nbsp;
-                            </Typography>
-                            <Typography
-                              color="textSecondary"
-                              variant="caption"
-                            >
-                              {'#' + row.ambiente}
+                              {status}
                             </Typography>
                             <Typography
                               color="textSecondary"
@@ -211,7 +154,7 @@ const Home = () => {
                         </Grid>
                       </Grid>
                     </TableCell>
-                    <TableCell sx={{ width: '120px', borderLeft: `1px solid ${theme.palette.background.default}` }}>
+                    <TableCell sx={{ width: '120px' }}>
                       <Grid
                         flexDirection="column"
                         alignItems="center"
@@ -223,7 +166,9 @@ const Home = () => {
                           color="textSecondary"
                           variant="caption"
                         >
-                          {'2021'}
+                          {
+                            createDate.getFullYear()
+                          }
                         </Typography>
                         <Typography
                           color="textSecondary"
@@ -232,30 +177,36 @@ const Home = () => {
                             fontWeight: 'bold',
                           }}
                         >
-                          {'19 AGO'}
+                         {
+                           createDate.getDate().toString().padStart(2, '0') + " " + monthNames[createDate.getMonth()]
+                         }
                         </Typography>
                         <Typography
                           color="textSecondary"
                           variant="caption"
                         >
-                          {'16:18'}
+                          {createDate.getHours().toString().padStart(2, '0') + ":" + createDate.getMinutes().toString().padStart(2, '0')}
                         </Typography>
                       </Grid>
+                    </TableCell>
+                    <TableCell sx={{ width: '80px' }}>
+                      <MenuList url={row.url} id={row.id}/>
                     </TableCell>
                   </TableRow>
                 );
               })}
           </TableBody>
           <TableFooter>
-            <TablePagination
-              rowsPerPageOptions={[]}
-              component="div"
-              count={rows.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              />
+            <TableRow>
+              <TablePagination
+                rowsPerPageOptions={[]}
+                count={rows.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </TableRow>
           </TableFooter>
         </StyledTable>
       </StyledPaper>

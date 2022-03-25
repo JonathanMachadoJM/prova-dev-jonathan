@@ -1,10 +1,3 @@
-import React, {useState, useEffect} from 'react';
-import { collection, addDoc} from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-// import {
-//   useLocation,
-// } from "react-router-dom";
-
 import {
   Box,
   Button,
@@ -15,34 +8,37 @@ import {
   Grid,
   Input,
   InputLabel,
-  MenuItem,
-  RadioGroup,
-  Radio,
-  Select,
+  MenuItem, Radio, RadioGroup, Select,
   TextField
 } from '@mui/material';
-
+import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import { db, storage } from '../../firebase-config';
-
 import Header from '../Header';
 
-// function useQuery() {
-//   const { search } = useLocation();
 
-//   return React.useMemo(() => new URLSearchParams(search), [search]);
-// }
+const useQuery = () => {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
 
 const Ticket = () => {
-  // const query = useQuery();
-  // const [ID] =  useState(query.get("id"));
-  // const [anexo, setAnexo] = useState();
+  const queryUrl = useQuery();
+  const ID =  queryUrl.get("id");
+  const isEdit = !!ID;
+  const navigate = useNavigate();
+
   const [ambiente, setAmbiente] = useState(0);
-  // const [categoria, setCategoria] = useState('');
-  // const [descricao, setDescricao] = useState('');
+  const [categoria, setCategoria] = useState('');
+  const [descricao, setDescricao] = useState('');
   const [operacao, setOperacao] = useState(0);
-  // const [prioridade, setPrioridade] = useState('');
-  // const [produto, setProduto ] = useState('');
-  // const [titulo, setTitulo] = useState('');
+  const [prioridade, setPrioridade] = useState('');
+  const [produto, setProduto] = useState('');
+  const [status, setStatus] = useState(0);
+  const [titulo, setTitulo] = useState('');
   const [usuariosImpactados, setUsuariosImpactados] = useState(0);
 
   const handleChangeUsuariosImpactados = (event) => {
@@ -55,6 +51,10 @@ const Ticket = () => {
 
   const handleChangeAmbiente = (event) => {
     setAmbiente(event.target.value);
+  };
+
+  const handleChangeStatus = (event) => {
+    setStatus(event.target.value);
   };
 
   const makeid = (length) => {
@@ -71,75 +71,110 @@ const Ticket = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let ext = "";
-    if (data.get('anexo').type == "application/pdf") {
-      ext = "pdf";
-    }
-    else if (data.get('anexo').type == "text/plain") {
-      ext = "txt";
-    }
-    else {
-      // TODO
-      console.log("erro");
-      return;
-    }
+
     const hash = makeid(30);
+    let ext = "";
 
-    const fileName = `files/${hash}.${ext}`;
+    const timestamp = new Date();
 
-    await addDoc(collection(db, "ticket"), {
+    const foo = {
       ambiente: data.get('ambiente-select'),
       categoria: data.get('categoria'),
       descricao: data.get('descricao'),
       operacao: data.get('operacao-select'),
       prioridade: data.get('prioridade'),
       produto: data.get('produto'),
-      usuariosImpactados: data.get('usuarios-impactados-select'),
+      status: data.get('status-select'),
       titulo: data.get('titulo'),
-      anexo: fileName,
-    }).then((e) => {
-      const timestamp = Date.now();
-      const foo = {
-        id: e.id,
-        ambiente: data.get('ambiente-select'),
-        categoria: data.get('categoria'),
-        descricao: data.get('descricao'),
-        operacao: data.get('operacao-select'),
-        prioridade: data.get('prioridade'),
-        produto: data.get('produto'),
-        usuariosImpactados: data.get('usuarios-impactados-select'),
-        titulo: data.get('titulo'),
-        datetime: timestamp,
-        username: "Jonathan",
-        email: "jonathan@gmail.com",
-      }
-      addDoc(collection(db, "log-ticket"), {
-        log: JSON.stringify(foo),
-      }).then((log) => {
-        console.log(log);
-      })
-    });
+      usuariosImpactados: data.get('usuarios-impactados-select'),
+      datetime: timestamp,
+    }
 
-    console.log(data.get('anexo'));
-    const anexo = ref(storage, fileName);
-
-    uploadBytesResumable(anexo, data.get('anexo')).then((snapshot) => {
-      getDownloadURL(snapshot.ref).then((downloadURL) => {
-        console.log("File available at", downloadURL);
+    if(isEdit){
+      await updateDoc(doc(db, "ticket", ID), {
+        ...foo,
+        acao: "U",
+      }).then((e) => {
+        console.log(e);
+        addDoc(collection(db, "log-ticket"), {
+          idTicket: ID,
+          acao: "U",
+          username: "Jonathan",
+          email: "jonathan@gmail.com",
+          log: JSON.stringify(foo),
+        }).then((log) => {
+          console.log(log);
+          navigate('/home');
+        })
       });
-    });
+    }
+    else {
+      if (data.get('anexo').type == "application/pdf") {
+        ext = "pdf";
+      }
+      else if (data.get('anexo').type == "text/plain") {
+        ext = "txt";
+      }
+      else {
+
+        // TODO:
+        console.log("erro");
+        return;
+      }
+
+      const fileName = `files/${hash}.${ext}`;
+
+      await addDoc(collection(db, "ticket"), {
+        ...foo,
+        acao: "I",
+        anexo: fileName,
+      }).then((e) => {
+        addDoc(collection(db, "log-ticket"), {
+          idTicket: e.id,
+          acao: "I",
+          username: "Jonathan",
+          email: "jonathan@gmail.com",
+          log: JSON.stringify(foo),
+        }).then((log) => {
+          console.log(log);
+          navigate('/home');
+        })
+      });
+      console.log(data.get('anexo'));
+      const anexo = ref(storage, fileName);
+
+      uploadBytesResumable(anexo, data.get('anexo')).then((snapshot) => {
+        getDownloadURL(snapshot.ref).then((downloadURL) => {
+          console.log("File available at", downloadURL);
+        });
+      });
+    }
   };
 
-  // const download = async () => {
-  //   getDownloadURL(ref(storage, 'files/ProvaDEVversao3.pdf'))
-  //     .then((url) => {
-  //       console.log(url);
-  //     });
-  // }
+  const getTicket = async () => {
+    const ticket = await getDoc(doc(db, 'ticket', ID));
+    const data = ticket.data();
+    if (ticket.exists()) {
+      setAmbiente(data.ambiente);
+      setCategoria(data.categoria);
+      setDescricao(data.descricao);
+      setOperacao(data.operacao);
+      setPrioridade(data.prioridade);
+      setProduto(data.produto);
+      setStatus(data.status);
+      setTitulo(data.titulo);
+      setUsuariosImpactados(data.usuariosImpactados);
+    }
+    else{
+      navigate('/home');
+    }
+  }
 
   useEffect(() => {
-
-  });
+    if (isEdit){
+      getTicket();
+    }
+  }, []);
 
   return (
     <>
@@ -170,6 +205,8 @@ const Ticket = () => {
               id="titulo"
               label="Título"
               name="titulo"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
               autoFocus
               sx={{
                 width: 500,
@@ -182,8 +219,10 @@ const Ticket = () => {
               required
               fullWidth
               id="descricao"
-              label="Descricao"
+              label="Descrição"
               name="descricao"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
               multiline={true}
               minRows={2}
               maxRows={3}
@@ -200,6 +239,8 @@ const Ticket = () => {
               id="produto"
               label="Produto"
               name="produto"
+              value={produto}
+              onChange={(e) => setProduto(e.target.value)}
               sx={{
                 width: 500,
                 mt: 1,
@@ -213,6 +254,8 @@ const Ticket = () => {
               id="categoria"
               label="Categoria"
               name="categoria"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
               sx={{
                 width: 500,
                 mt: 1,
@@ -225,6 +268,8 @@ const Ticket = () => {
                 row
                 aria-labelledby="prioridade"
                 name="prioridade"
+                value={prioridade}
+                onChange={(e) => setPrioridade(e.target.value)}
               >
                 <FormControlLabel value={0} control={<Radio />} label="Alta" />
                 <FormControlLabel value={1} control={<Radio />} label="Médio" />
@@ -298,18 +343,42 @@ const Ticket = () => {
                 <MenuItem value={1}>Ambiente de produção - Cliente Ativo/Licença</MenuItem>
               </Select>
             </FormControl>
-            <Input
-              required
-              id="anexo"
-              label="Anexo"
-              name="anexo"
-              type="file"
+            <FormControl
+              fullWidth
               sx={{
                 width: 500,
                 mt: 1,
                 mb: 1
               }}
-            />
+            >
+              <InputLabel id="status-label">Status</InputLabel>
+              <Select
+                labelId="status-label"
+                id="status-select"
+                value={status}
+                label="Status"
+                name="status-select"
+                onChange={handleChangeStatus}
+              >
+                <MenuItem value={0}>Aberto</MenuItem>
+                <MenuItem value={1}>Em análise</MenuItem>
+                <MenuItem value={2}>Finalizado</MenuItem>
+              </Select>
+            </FormControl>
+            {!isEdit &&
+              <Input
+                required
+                id="anexo"
+                label="Anexo"
+                name="anexo"
+                type="file"
+                sx={{
+                  width: 500,
+                  mt: 1,
+                  mb: 1
+                }}
+              />
+            }
             <Grid container
               direction="row"
               justifyContent="center"

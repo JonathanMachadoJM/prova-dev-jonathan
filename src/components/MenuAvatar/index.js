@@ -7,8 +7,12 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Logout from '@mui/icons-material/Logout';
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase-config";
+import { useNavigate } from 'react-router-dom';
 
 export default function MenuAvatar() {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -17,10 +21,24 @@ export default function MenuAvatar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleLogout = () => {
+    console.log("aqui");
+    signOut(auth).then(() => {
+      setTimeout(() => {
+        navigate('/login');
+      }, 10000);
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
+
+  const user = auth.currentUser;
+
   return (
-    <React.Fragment>
+    <>
       <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-        <Tooltip title="Account settings">
+        <Tooltip title={user.displayName}>
           <IconButton
             onClick={handleClick}
             size="small"
@@ -29,7 +47,7 @@ export default function MenuAvatar() {
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
           >
-            <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+            <Avatar sx={{ width: 32, height: 32 }}>{user.displayName.substring(0, 1).toUpperCase()}</Avatar>
           </IconButton>
         </Tooltip>
       </Box>
@@ -68,13 +86,13 @@ export default function MenuAvatar() {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem>
-          <ListItemIcon>
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon >
             <Logout fontSize="small" />
           </ListItemIcon>
           Logout
         </MenuItem>
       </Menu>
-    </React.Fragment>
+    </>
   );
 }
