@@ -7,33 +7,28 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Logout from '@mui/icons-material/Logout';
-import { signOut } from "firebase/auth";
-import { auth } from "../../firebase-config";
+import { signOut } from 'firebase/auth';
+import { auth } from '../../firebase-config';
 import { useNavigate } from 'react-router-dom';
 
-export default function MenuAvatar() {
+const MenuAvatar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const user = auth.currentUser;
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   const handleLogout = () => {
-    console.log("aqui");
     signOut(auth).then(() => {
-      setTimeout(() => {
-        navigate('/login');
-      }, 10000);
+      navigate('/login');
     }).catch((error) => {
-      console.log(error);
+      console.error(error);
     });
   };
-
-  const user = auth.currentUser;
 
   return (
     <>
@@ -87,7 +82,7 @@ export default function MenuAvatar() {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <MenuItem onClick={handleLogout}>
-          <ListItemIcon >
+          <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
           Logout
@@ -96,3 +91,5 @@ export default function MenuAvatar() {
     </>
   );
 }
+
+export default MenuAvatar;

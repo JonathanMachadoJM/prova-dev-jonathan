@@ -32,7 +32,3 @@ export const Menu = styled.div`
   flex-direction: row;
   align-items: center;
 `;
-
-export const Button = styled.button`
-
-`;

@@ -9,26 +9,39 @@ import {
   Input,
   InputLabel,
   MenuItem, Radio, RadioGroup, Select,
-  TextField
+  TextField,
 } from '@mui/material';
-import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from "react-router-dom";
-import { db, storage } from '../../firebase-config';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { db, storage, auth } from '../../firebase-config';
 import Header from '../Header';
-
+import Alert from '../Alert';
 
 const useQuery = () => {
   const { search } = useLocation();
 
   return React.useMemo(() => new URLSearchParams(search), [search]);
-}
+};
+
+const makeid = (length) => {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+};
 
 const Ticket = () => {
   const queryUrl = useQuery();
-  const ID =  queryUrl.get("id");
+  const ID = queryUrl.get('id');
   const isEdit = !!ID;
+  const user = auth.currentUser;
   const navigate = useNavigate();
 
   const [ambiente, setAmbiente] = useState(0);
@@ -40,44 +53,44 @@ const Ticket = () => {
   const [status, setStatus] = useState(0);
   const [titulo, setTitulo] = useState('');
   const [usuariosImpactados, setUsuariosImpactados] = useState(0);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [isError, setIsError] = useState(true);
 
   const handleChangeUsuariosImpactados = (event) => {
     setUsuariosImpactados(event.target.value);
   };
-
   const handleChangeOperacao = (event) => {
     setOperacao(event.target.value);
   };
-
   const handleChangeAmbiente = (event) => {
     setAmbiente(event.target.value);
   };
-
   const handleChangeStatus = (event) => {
     setStatus(event.target.value);
   };
+  const setError = (message) => {
+    setIsError(true);
+    setAlertMessage(message);
+  };
+  const handleCloseAlert = () => {
+    setAlertMessage('');
+  };
 
-  const makeid = (length) => {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() *
-      charactersLength));
-    }
-    return result;
-  }
+  const createLog = (acao, id, fields) => {
+    return addDoc(collection(db, 'log-ticket'), {
+      idTicket: id,
+      acao,
+      username: user.displayName,
+      email: user.email,
+      log: JSON.stringify(fields),
+    });
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-
-    const hash = makeid(30);
-    let ext = "";
-
     const timestamp = new Date();
-
-    const foo = {
+    const fields = {
       ambiente: data.get('ambiente-select'),
       categoria: data.get('categoria'),
       descricao: data.get('descricao'),
@@ -88,67 +101,54 @@ const Ticket = () => {
       titulo: data.get('titulo'),
       usuariosImpactados: data.get('usuarios-impactados-select'),
       datetime: timestamp,
+    };
+
+    if (fields.titulo === '') return setError('Por favor, informe o título.');
+    if (fields.descricao === '') return setError('Por favor, informe a descrição.');
+    if (fields.produto === '') return setError('Por favor, informe o produto.');
+    if (fields.categoria === '') return setError('Por favor, informe a categoria.');
+    if (!fields.prioridade) return setError('Por favor, informe a prioridade');
+
+    // Update
+    if (isEdit) {
+      const acao = 'U';
+      updateDoc(doc(db, 'ticket', ID), {
+        ...fields,
+        acao,
+      }).then(() => {
+        createLog(acao, ID, fields).then(() => {
+          navigate(`/home?acao=${acao}`);
+        });
+      });
+
+      return;
     }
 
-    if(isEdit){
-      await updateDoc(doc(db, "ticket", ID), {
-        ...foo,
-        acao: "U",
-      }).then((e) => {
-        console.log(e);
-        addDoc(collection(db, "log-ticket"), {
-          idTicket: ID,
-          acao: "U",
-          username: "Jonathan",
-          email: "jonathan@gmail.com",
-          log: JSON.stringify(foo),
-        }).then((log) => {
-          console.log(log);
-          navigate('/home');
-        })
-      });
-    }
-    else {
-      if (data.get('anexo').type == "application/pdf") {
-        ext = "pdf";
-      }
-      else if (data.get('anexo').type == "text/plain") {
-        ext = "txt";
-      }
-      else {
+    // Insert
+    const type = data.get('anexo').type;
+    const ext = type === 'application/pdf' ? 'pdf' : type === 'text/plain' ? 'txt' : '';
+    if (!ext) return setError('Por favor, selecione um anexo do tipo PDF ou TXT.');
+    const acao = 'I';
+    const hash = makeid(30);
+    const fileName = `files/${hash}.${ext}`;
 
-        // TODO:
-        console.log("erro");
-        return;
-      }
-
-      const fileName = `files/${hash}.${ext}`;
-
-      await addDoc(collection(db, "ticket"), {
-        ...foo,
-        acao: "I",
-        anexo: fileName,
-      }).then((e) => {
-        addDoc(collection(db, "log-ticket"), {
-          idTicket: e.id,
-          acao: "I",
-          username: "Jonathan",
-          email: "jonathan@gmail.com",
-          log: JSON.stringify(foo),
-        }).then((log) => {
-          console.log(log);
-          navigate('/home');
-        })
-      });
-      console.log(data.get('anexo'));
+    addDoc(collection(db, 'ticket'), {
+      ...fields,
+      status: '1',
+      acao,
+      username: user.displayName,
+      anexo: fileName,
+    }).then((e) => {
       const anexo = ref(storage, fileName);
 
       uploadBytesResumable(anexo, data.get('anexo')).then((snapshot) => {
-        getDownloadURL(snapshot.ref).then((downloadURL) => {
-          console.log("File available at", downloadURL);
+        getDownloadURL(snapshot.ref).then(() => {
+          createLog(acao, e.id, fields).then(() => {
+            navigate(`/home?acao=${acao}`);
+          });
         });
       });
-    }
+    });
   };
 
   const getTicket = async () => {
@@ -164,14 +164,13 @@ const Ticket = () => {
       setStatus(data.status);
       setTitulo(data.titulo);
       setUsuariosImpactados(data.usuariosImpactados);
-    }
-    else{
+    } else {
       navigate('/home');
     }
-  }
+  };
 
   useEffect(() => {
-    if (isEdit){
+    if (isEdit) {
       getTicket();
     }
   }, []);
@@ -191,13 +190,14 @@ const Ticket = () => {
           <Box
             component="form"
             onSubmit={handleSubmit}
-            flexDirection='column'
+            flexDirection="column"
             noValidate
             sx={{
               mt: 1,
-              display: 'flex'
+              display: 'flex',
             }}
           >
+            <Alert message={alertMessage} isError={isError} onCloseAlert={handleCloseAlert} />
             <TextField
               margin="normal"
               required
@@ -209,9 +209,8 @@ const Ticket = () => {
               onChange={(e) => setTitulo(e.target.value)}
               autoFocus
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             />
             <TextField
@@ -227,9 +226,8 @@ const Ticket = () => {
               minRows={2}
               maxRows={3}
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             />
             <TextField
@@ -242,9 +240,8 @@ const Ticket = () => {
               value={produto}
               onChange={(e) => setProduto(e.target.value)}
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             />
             <TextField
@@ -257,9 +254,8 @@ const Ticket = () => {
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             />
             <FormControl>
@@ -280,9 +276,8 @@ const Ticket = () => {
             <FormControl
               fullWidth
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             >
               <InputLabel id="usuarios-impactados-label">Usuários Impactados</InputLabel>
@@ -304,9 +299,8 @@ const Ticket = () => {
             <FormControl
               fullWidth
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             >
               <InputLabel id="operacao-label">Sua operação está parada?</InputLabel>
@@ -325,9 +319,8 @@ const Ticket = () => {
             <FormControl
               fullWidth
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             >
               <InputLabel id="ambiente-label">Informações de Ambiente</InputLabel>
@@ -343,12 +336,12 @@ const Ticket = () => {
                 <MenuItem value={1}>Ambiente de produção - Cliente Ativo/Licença</MenuItem>
               </Select>
             </FormControl>
+            {isEdit &&
             <FormControl
               fullWidth
               sx={{
-                width: 500,
                 mt: 1,
-                mb: 1
+                mb: 1,
               }}
             >
               <InputLabel id="status-label">Status</InputLabel>
@@ -360,26 +353,27 @@ const Ticket = () => {
                 name="status-select"
                 onChange={handleChangeStatus}
               >
-                <MenuItem value={0}>Aberto</MenuItem>
-                <MenuItem value={1}>Em análise</MenuItem>
-                <MenuItem value={2}>Finalizado</MenuItem>
+                <MenuItem value={1}>Aberto</MenuItem>
+                <MenuItem value={2}>Em análise</MenuItem>
+                <MenuItem value={3}>Finalizado</MenuItem>
               </Select>
             </FormControl>
-            {!isEdit &&
-              <Input
-                required
-                id="anexo"
-                label="Anexo"
-                name="anexo"
-                type="file"
-                sx={{
-                  width: 500,
-                  mt: 1,
-                  mb: 1
-                }}
-              />
             }
-            <Grid container
+            {!isEdit &&
+            <Input
+              required
+              id="anexo"
+              label="Anexo"
+              name="anexo"
+              type="file"
+              sx={{
+                mt: 1,
+                mb: 1,
+              }}
+            />
+            }
+            <Grid
+              container
               direction="row"
               justifyContent="center"
               alignItems="center"
@@ -392,7 +386,7 @@ const Ticket = () => {
                   height: 36.5,
                   width: 145,
                   mt: 1,
-                  mb: 1
+                  mb: 1,
                 }}
               >
                 Salvar
@@ -403,6 +397,6 @@ const Ticket = () => {
       </Container>
     </>
   );
-}
+};
 
 export default Ticket;

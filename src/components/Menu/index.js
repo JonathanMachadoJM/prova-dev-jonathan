@@ -1,20 +1,21 @@
-import React from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
-  Link as MaterialLink
+  Link as MaterialLink,
 } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import * as React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { getDownloadURL, ref } from "firebase/storage";
+import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../../firebase-config';
+import { useEffect } from 'react';
 
 const ITEM_HEIGHT = 48;
 
-const MenuList = ({url, id}) => {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+const MenuList = ({ row, handleOpenDialog }) => {
   const [urlDownload, setUrlDownload] = React.useState('');
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -22,10 +23,18 @@ const MenuList = ({url, id}) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const handleClickOpenDialog = () => {
+    handleOpenDialog(row.id);
+    handleClose();
+  };
 
-  getDownloadURL(ref(storage, url)).then((e) => {
-    setUrlDownload(e);
-  });
+  useEffect(() => {
+    if (open) {
+      getDownloadURL(ref(storage, row.anexo)).then((e) => {
+        setUrlDownload(e);
+      });
+    }
+  }, [open]);
 
   return (
     <div>
@@ -54,18 +63,24 @@ const MenuList = ({url, id}) => {
           },
         }}
       >
-        <MenuItem key="Visualizar" selected={true}>
-          <MaterialLink underline="none" component={RouterLink} to={`/ticket?id=${id}`}>Visualizar</MaterialLink>
-        </MenuItem>
-        <MenuItem key="Baixar Anexo">
-          <MaterialLink underline="none" target="_blank" href={urlDownload}>Baixar Anexo</MaterialLink>
-        </MenuItem>
-        <MenuItem key="Mostrar Logs">
-          <MaterialLink underline="none" component={RouterLink} to={`/cadastro?id=${id}`}>Mostrar Logs</MaterialLink>
-        </MenuItem>
+        <MaterialLink underline="none" component={RouterLink} to={`/ticket?id=${row.id}`}>
+          <MenuItem key="Editar" selected={true}>
+            Editar
+          </MenuItem>
+        </MaterialLink>
+        <MaterialLink underline="none" target="_blank" href={urlDownload}>
+          <MenuItem key="Baixar Anexo">
+            Baixar Anexo
+          </MenuItem>
+        </MaterialLink>
+        <MaterialLink underline="none" onClick={handleClickOpenDialog}>
+          <MenuItem key="Mostrar Logs">
+            Mostrar Logs
+          </MenuItem>
+        </MaterialLink>
       </Menu>
     </div>
   );
-}
+};
 
 export default MenuList;
